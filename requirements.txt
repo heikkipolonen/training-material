@@ -1,0 +1,5 @@
+# Ainoa hyväksytty esimerkkikirjasto
+arcgis
+
+# Koulutuksessa hylkäys testataan poistamalla seuraavalta riviltä kommenttimerkki:
+# unknown-demo-package==1.0.0

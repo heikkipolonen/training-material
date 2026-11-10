@@ -1,0 +1,31 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- checkout: self
+  clean: true
+
+- task: UsePythonVersion@0
+  displayName: Käytä Python 3.11
+  inputs:
+    versionSpec: '3.11'
+
+- script: python scripts/check_approved_libraries.py
+  displayName: Tarkasta hyväksytyt kirjastot
+
+- task: PublishPipelineArtifact@1
+  condition: always()
+  displayName: Julkaise auditointievidenssi
+  inputs:
+    targetPath: artifacts
+    artifact: approved-libraries-audit-evidence
