@@ -23,6 +23,8 @@ from typing import Any
 
 import yaml
 
+from azure_devops import failure_commands
+
 DEFAULT_REQUIREMENTS_FILES = [Path("requirements.txt"), Path("requirements-dev.txt")]
 DEFAULT_POLICY_FILE = Path("policy/approved-libraries.yml")
 DEFAULT_OUTPUT_DIR = Path("artifacts")
@@ -244,23 +246,13 @@ def format_text_report(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _azure_escape(message: str) -> str:
-    """Koodaa merkit, joilla on erityismerkitys Azure DevOpsin logging-komennoissa."""
-    return message.replace("%", "%AZP25").replace("\r", "%0D").replace("\n", "%0A")
-
-
 def _files_containing(report: dict[str, Any], name: str) -> str:
     files = [Path(path).name for path, deps in report["dependencies"].items() if name in deps]
     return ", ".join(files)
 
 
 def format_azure_devops_commands(report: dict[str, Any]) -> list[str]:
-    """Muodosta Azure DevOpsin logging-komennot hylätylle tarkastukselle.
-
-    `task.logissue`-rivit näkyvät pipeline-ajon ja PR:n tarkastuksen yhteenvedossa.
-    `task.complete result=Failed` merkitsee taskin epäonnistuneeksi ilman
-    geneeristä "Bash exited with code '1'" -viestiä.
-    """
+    """Muodosta Azure DevOpsin logging-komennot hylätylle tarkastukselle."""
     if report["result"] == APPROVED:
         return []
 
@@ -276,9 +268,7 @@ def format_azure_devops_commands(report: dict[str, Any]) -> list[str]:
         )
     messages.append(f"Korjausohje: {report['remediation']}")
 
-    commands = [f"##vso[task.logissue type=error]{_azure_escape(m)}" for m in messages]
-    commands.append("##vso[task.complete result=Failed;]Tarkastus hylkäsi riippuvuudet")
-    return commands
+    return failure_commands(messages, "Tarkastus hylkäsi riippuvuudet")
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -1,0 +1,52 @@
+# pre-commit-hookit: nopea palaute kehittäjän omalla koneella ennen committia.
+#
+# HUOM: hook EI ole tietoturvakontrolli. Se ohitetaan komennolla
+# `git commit --no-verify`, eikä se asennu automaattisesti kloonatessa.
+# Varsinainen kontrolli on edelleen pipeline ja pakollinen Build validation.
+#
+# Linjaus: vain paikalliset hookit (repo: local). Sääntö tarkastetaan
+# skriptillä scripts/check_precommit_config.py sekä hookina että pipelinessa.
+#
+# Käyttöönotto: python -m pre_commit install
+# (asentaa sekä pre-commit- että pre-push-hookit, ks. default_install_hook_types)
+
+# `pre-commit install` asentaa molemmat hook-tyypit.
+default_install_hook_types: [pre-commit, pre-push]
+# Hookit ajetaan oletuksena vain commitissa, ellei hookille ole määritelty muuta.
+default_stages: [pre-commit]
+
+repos:
+  - repo: local
+    hooks:
+      - id: approved-libraries
+        name: Tarkasta hyväksytyt kirjastot
+        language: python
+        additional_dependencies: [pyyaml]
+        entry: python scripts/check_approved_libraries.py
+        # Ajetaan vain, kun riippuvuudet tai rekisteri muuttuvat.
+        files: ^(requirements.*\.txt|policy/.*)$
+        pass_filenames: false
+
+      # Estää kolmannen osapuolen hookin päätymisen committiin vahingossa.
+      # HUOM: pre-commit lataa ja asentaa kaikki hookit ENNEN kuin yksikään ajetaan.
+      # Tämä hook estää siis commitin, mutta ei sitä, että kolmannen osapuolen
+      # koodi on jo ehtinyt asentua ja ajautua kehittäjän koneella.
+      # Siksi sama sääntö tarkastetaan myös pipelinessa.
+      - id: local-hooks-only
+        name: Salli vain paikalliset hookit
+        language: python
+        additional_dependencies: [pyyaml]
+        entry: python scripts/check_precommit_config.py
+        files: ^\.pre-commit-config\.yaml$
+        pass_filenames: false
+
+      # Testit ajetaan ennen pushia: committi pysyy nopeana, mutta rikkinäiset
+      # testit huomataan ennen kuin ne päätyvät pipelineen.
+      - id: tests
+        name: Aja testit
+        language: python
+        additional_dependencies: [pytest, pyyaml]
+        entry: python -m pytest -q
+        stages: [pre-push]
+        always_run: true
+        pass_filenames: false

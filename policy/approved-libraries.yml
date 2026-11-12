@@ -23,6 +23,10 @@ approved:
     approved_by: training-security-team
     approved_on: 2026-11-12
     reason: Tarkastussäännön testaus
+  - name: pre-commit
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: Git-hookit; vain paikalliset hookit sallittu (scripts/check_precommit_config.py)
 
 # Poikkeus on aina määräaikainen. Tarkastus hylkää riippuvuuden, kun
 # 'expires'-päivä on ohitettu. Pakolliset kentät: name, ticket, expires.

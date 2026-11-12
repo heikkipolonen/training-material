@@ -37,6 +37,23 @@
       "problemMatcher": []
     },
     {
+      "label": "Asenna git-hookit",
+      "detail": "Ottaa pre-commit-hookit käyttöön tässä repositoriossa (git commit ajaa ne).",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "pre_commit", "install"],
+      "dependsOn": ["Asenna kehitystyökalut"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Aja git-hookit kaikille tiedostoille",
+      "detail": "Ajaa pre-commit-hookit koko repositoriolle ilman committia.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "pre_commit", "run", "--all-files"],
+      "problemMatcher": []
+    },
+    {
       "label": "Koko ketju (kuten pipeline)",
       "detail": "PyYAML → tarkastus → kehitystyökalut → testit. Pysähtyy, jos tarkastus hylkää.",
       "dependsOrder": "sequence",

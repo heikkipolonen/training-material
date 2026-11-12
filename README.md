@@ -18,6 +18,15 @@ Tämä pieni koulutusrepository näyttää käytännössä DevSecOps-ketjun:
 
 **Linjaus → tarkastussääntö → requirements.txt-vertailu → Azure Pipeline → pakollinen PR-kontrolli → auditointievidenssi**
 
+## Oppitunnit
+
+Jokainen oppitunti on oma haaransa, ja seuraava oppitunti jatkaa edellisen lopputuloksesta.
+
+| Haara | Aihe | Ohje |
+| --- | --- | --- |
+| `lesson/01-approved-libraries` | Hyväksytyt kirjastot, pipeline ja pakollinen PR-kontrolli | [koulutusprosessi.md](koulutusprosessi.md) |
+| `lesson/02-git-hooks` | Git-hookit: sama tarkastus kehittäjän koneelle | [oppitunti-02-git-hookit.md](oppitunti-02-git-hookit.md) |
+
 ## Linjaus
 
 Uuden suoran Python-riippuvuuden (myös kehitystyökalun) pitää löytyä hyväksyttyjen kirjastojen rekisteristä tai sillä pitää olla dokumentoitu ja hyväksytty poikkeus.
@@ -32,7 +41,10 @@ Rekisteri (politiikka) ja tarkastusskripti (sääntö) ovat erillään, jotta re
 | --- | --- |
 | `policy/approved-libraries.yml` | Hyväksytyt kirjastot ja määräaikaiset poikkeukset |
 | `scripts/check_approved_libraries.py` | Tarkastussääntö |
-| `tests/` | Tarkastussäännön testit (pytest) |
+| `scripts/check_precommit_config.py` | Sääntö: vain paikalliset git-hookit |
+| `scripts/azure_devops.py` | Hylkäyksen syyt Azure DevOpsin PR-näkymään |
+| `.pre-commit-config.yaml` | Git-hookit: tarkastukset commitissa, testit pushissa |
+| `tests/` | Tarkastussääntöjen testit (pytest) |
 | `requirements.txt` | Tarkastettavan projektin riippuvuudet |
 | `requirements-dev.txt` | Kehitystyökalujen riippuvuudet (tarkastetaan samalla linjauksella) |
 | `azure-pipelines.yml` | Pipeline: tarkastus → kehitystyökalujen asennus → testit → auditointievidenssi |
@@ -59,6 +71,8 @@ Samat vaiheet löytyvät myös VS Code -taskeina (**Terminal → Run Task…**).
 | **Tarkasta hyväksytty kirjasto** | `Ctrl+Shift+B` (oletus-build-task) |
 | **Asenna kehitystyökalut**: ajaa tarkastuksen ensin | – |
 | **Aja testit** | oletus-test-task |
+| **Asenna git-hookit**: asentaa kehitystyökalut ensin | – |
+| **Aja git-hookit kaikille tiedostoille** | – |
 
 Raportit syntyvät kansioon `artifacts/` (ei versionhallinnassa):
 
@@ -105,3 +119,13 @@ Korjausohje: Poista riippuvuus tai dokumentoi ja hyväksytä poikkeus (policy/ap
 Tämä tehdään Azure DevOpsin [logging-komennoilla](https://learn.microsoft.com/azure/devops/pipelines/scripts/logging-commands) (`##vso[task.logissue]` ja `##vso[task.complete result=Failed]`). Paikallisesti skripti käyttää tavallista exit-koodia 1.
 
 Tarkemmat GitHub-, VS Code- ja Azure DevOps -vaiheet ovat tiedostossa [koulutusprosessi.md](koulutusprosessi.md).
+
+## Git-hookit
+
+Samat tarkastukset voi ajaa jo kehittäjän koneella git-hookeina:
+
+```powershell
+python -m pre_commit install
+```
+
+`git commit` tarkastaa riippuvuudet ja hook-asetukset, ja `git push` ajaa testit. Hookit antavat nopean palautteen, mutta ne eivät korvaa pipelinea: `--no-verify` ohittaa ne. Katso [oppitunti-02-git-hookit.md](oppitunti-02-git-hookit.md).

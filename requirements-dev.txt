@@ -5,3 +5,4 @@
 # Versioiden lukitus (pinning) ja hash-tarkistus käsitellään myöhemmässä osiossa.
 pyyaml
 pytest
+pre-commit

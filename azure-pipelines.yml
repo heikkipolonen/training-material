@@ -33,6 +33,11 @@ steps:
 - script: python scripts/check_approved_libraries.py --azure-devops
   displayName: Tarkasta hyväksytyt kirjastot
 
+# Sama sääntö ajetaan myös pre-commit-hookina, mutta hookin voi ohittaa
+# (--no-verify). Pipelinessa sitä ei voi ohittaa.
+- script: python scripts/check_precommit_config.py --azure-devops
+  displayName: Tarkasta pre-commit-hookien alkuperä
+
 # Kehitystyökalut asennetaan vasta, kun ne on todettu hyväksytyiksi.
 - script: python -m pip install -r requirements-dev.txt
   displayName: Asenna kehitystyökalut

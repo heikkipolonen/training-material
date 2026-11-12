@@ -22,6 +22,14 @@ Pipeline tarkastaa riippuvuudet ennen kuin asentaa kehitystyökalut. Ainoa ennen
 
 Poikkeus kirjataan rekisterin `exceptions`-listaan. Jokaisella poikkeuksella on pakollinen tikettiviite (`ticket`) ja päättymispäivä (`expires`). Poikkeus on voimassa päättymispäivään asti.
 
+## Git-hookit
+
+Git-hookit ovat kehittäjän apuväline, eivät tietoturvakontrolli: ne voi jättää asentamatta tai ohittaa (`--no-verify`). Jokainen hookina ajettava pakollinen sääntö tarkastetaan siksi myös pipelinessa.
+
+- Vain paikalliset hookit (`repo: local`) ovat sallittuja. Kolmannen osapuolen hook-repositoriot hylätään (`scripts/check_precommit_config.py`).
+- Hook-asetusten (`.pre-commit-config.yaml`) ja hook-skriptien muutoksilla on pakollinen katselmoija, koska ne ajautuvat katselmoijan koneella.
+- Hookin käyttämät paketit (`additional_dependencies`) kuuluvat hyväksyttyjen kirjastojen rekisteriin samoin kuin muut kehitystyökalut.
+
 ## Rajaukset
 
 - Tarkastus koskee vain suoria riippuvuuksia.
@@ -29,5 +37,6 @@ Poikkeus kirjataan rekisterin `exceptions`-listaan. Jokaisella poikkeuksella on 
 - Tarkastus ei arvioi pakettiversiota (versioiden lukitus on seuraavan osion aihe).
 - Tarkastus ei arvioi tunnettuja haavoittuvuuksia.
 - Tarkastus ei arvioi lisenssejä.
-- Tarkastus ei arvioi transitiivisia riippuvuuksia.
+- Tarkastus ei arvioi transitiivisia riippuvuuksia (esim. `pre-commit`in omia riippuvuuksia).
+- Hookien `additional_dependencies` ei tarkasteta automaattisesti rekisteriä vasten.
 - Lista on vain koulutusprototyyppi, ei virallinen hyväksyntälista.
