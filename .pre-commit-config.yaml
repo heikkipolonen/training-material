@@ -60,3 +60,16 @@ repos:
         stages: [pre-push]
         always_run: true
         pass_filenames: false
+
+      # Tunnetut haavoittuvuudet ennen pushia: kehittäjä näkee saman tuloksen,
+      # jonka PR:n pipeline näyttäisi. Ajetaan aina, koska tulos voi muuttua
+      # ilman muutoksia koodiin (uusia haavoittuvuuksia julkaistaan päivittäin).
+      # Vaatii verkkoyhteyden.
+      - id: vulnerabilities
+        name: Tarkasta tunnetut haavoittuvuudet
+        language: python
+        additional_dependencies: ["pip-audit==2.10.1", "pyyaml==6.0.3"]
+        entry: python scripts/check_vulnerabilities.py
+        stages: [pre-push]
+        always_run: true
+        pass_filenames: false

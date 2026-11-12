@@ -9,6 +9,18 @@ trigger:
 # Siksi PR-triggeri on tässä tarkoituksella pois päältä, ettei se johda harhaan.
 pr: none
 
+# Yöllinen ajo main-haarasta. Uusia haavoittuvuuksia julkaistaan päivittäin,
+# joten eilen hyväksytty lukitustiedosto voi olla tänään haavoittuva, vaikka
+# kukaan ei ole muuttanut mitään. always: true = aja, vaikka koodi ei olisi
+# muuttunut edellisen ajon jälkeen. Aika on UTC.
+schedules:
+- cron: '0 3 * * *'
+  displayName: Yöllinen haavoittuvuustarkastus
+  branches:
+    include:
+      - main
+  always: true
+
 pool:
   vmImage: ubuntu-latest
 
@@ -63,6 +75,11 @@ steps:
     testResultsFiles: test-results/junit.xml
     testRunTitle: Tarkastussäännön testit
     failTaskOnMissingResultsFile: false
+
+# Kaikkien lukitustiedostojen kaikki paketit (myös transitiiviset ja muiden
+# käyttöjärjestelmien paketit) tunnettuja haavoittuvuuksia vasten.
+- script: python scripts/check_vulnerabilities.py --azure-devops
+  displayName: Tarkasta tunnetut haavoittuvuudet
 
 # Lukitustiedostot ovat osa evidenssiä: ne kertovat tarkalleen, mitä asennettiin.
 - script: mkdir -p artifacts && cp requirements*.lock.txt artifacts/

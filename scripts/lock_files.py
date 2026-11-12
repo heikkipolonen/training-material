@@ -1,6 +1,7 @@
 """Päivitä ja tarkasta lukitustiedostot (vrt. npm:n package-lock.json).
 
     python scripts/lock_files.py update   # luo lukitustiedostot uudelleen uv:llä
+    python scripts/lock_files.py update --upgrade-package requests   # päivitä yksi paketti
     python scripts/lock_files.py check    # tarkasta, että ne vastaavat requirements-tiedostoja
 
 Jokaisesta käsin muokattavasta requirements-tiedostosta luodaan lukitustiedosto,
@@ -53,18 +54,24 @@ UV_COMPILE_OPTIONS = [
     "--quiet",
 ]
 
-CompileLock = Callable[[Path, Path], None]
+CompileLock = Callable[..., None]
 LockEntries = dict[tuple[str, str], tuple[str, frozenset[str]]]
 
 HASH = re.compile(r"--hash=(\S+)")
 PINNED = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)==(\S+?)\s*(?:;\s*(.*?))?\s*$")
 
 
-def uv_compile(source: Path, output: Path) -> None:
-    """Luo lukitustiedosto uv:llä. uv säilyttää output-tiedostossa jo olevat versiot."""
+def uv_compile(source: Path, output: Path, upgrade: tuple[str, ...] = ()) -> None:
+    """Luo lukitustiedosto uv:llä.
+
+    uv säilyttää output-tiedostossa jo olevat versiot. `upgrade` päivittää
+    nimetyt paketit uusimpaan sopivaan versioon (esim. haavoittuvuuden korjaus
+    transitiiviseen riippuvuuteen).
+    """
+    upgrade_options = [option for name in upgrade for option in ("--upgrade-package", name)]
     result = subprocess.run(
         [sys.executable, "-m", "uv", "pip", "compile", str(source), "-o", str(output),
-         *UV_COMPILE_OPTIONS],
+         *UV_COMPILE_OPTIONS, *upgrade_options],
         capture_output=True,
         text=True,
     )
@@ -187,7 +194,15 @@ def main(
 ) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("update", help="Luo lukitustiedostot uudelleen.")
+    update = commands.add_parser("update", help="Luo lukitustiedostot uudelleen.")
+    update.add_argument(
+        "--upgrade-package",
+        action="append",
+        default=[],
+        metavar="PAKETTI",
+        help="Päivitä paketti uusimpaan sopivaan versioon. Muut versiot säilyvät. "
+        "Voidaan antaa useita kertoja.",
+    )
     check = commands.add_parser("check", help="Tarkasta, että lukitustiedostot ovat ajan tasalla.")
     check.add_argument(
         "--azure-devops",
@@ -200,7 +215,11 @@ def main(
     if args.command == "update":
         for lock in locks:
             print(f"Päivitetään {lock.lock} ({lock.source})")
-            compile_lock(root / lock.source, root / lock.lock)
+            if args.upgrade_package:
+                compile_lock(root / lock.source, root / lock.lock,
+                             upgrade=tuple(args.upgrade_package))
+            else:
+                compile_lock(root / lock.source, root / lock.lock)
         return 0
 
     problems = check_locks(locks, root, compile_lock)

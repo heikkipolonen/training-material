@@ -42,6 +42,12 @@ approved:
     approved_on: 2026-11-12
     reason: Lukitustiedostojen luonti (scripts/lock_files.py); pip asentaa
       edelleen kaiken. Valittu yli kaksi viikkoa vanha versio uusimman sijaan.
+  - name: pip-audit
+    versions: ["2.10.1"]
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: Lukitustiedostojen haavoittuvuustarkastus (scripts/check_vulnerabilities.py).
+      PyPA:n ylläpitämä.
 
 # Poikkeus on aina määräaikainen ja koskee vain lueteltuja versioita.
 # Tarkastus hylkää riippuvuuden, kun 'expires'-päivä on ohitettu.

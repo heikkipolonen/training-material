@@ -27,6 +27,7 @@ Jokainen oppitunti on oma haaransa, ja seuraava oppitunti jatkaa edellisen loppu
 | `lesson/01-approved-libraries` | Hyväksytyt kirjastot, pipeline ja pakollinen PR-kontrolli | [oppitunnit/01-hyvaksytyt-kirjastot.md](oppitunnit/01-hyvaksytyt-kirjastot.md) |
 | `lesson/02-git-hooks` | Git-hookit: sama tarkastus kehittäjän koneelle | [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md) |
 | `lesson/03-pinning` | Versioiden lukitus ja lukitustiedostot (vrt. `package-lock.json`) | [oppitunnit/03-versioiden-lukitus.md](oppitunnit/03-versioiden-lukitus.md) |
+| `lesson/04-vulnerability-scanning` | Tunnettujen haavoittuvuuksien tarkastus koko riippuvuuspuulle | [oppitunnit/04-haavoittuvuudet.md](oppitunnit/04-haavoittuvuudet.md) |
 
 ## Linjaus
 
@@ -44,14 +45,16 @@ Rekisteri (politiikka) ja tarkastusskripti (sääntö) ovat erillään, jotta re
 | `requirements.txt` | Projektin suorat riippuvuudet tarkkoine versioineen (vrt. `package.json`) |
 | `requirements-dev.txt` | Kehitystyökalujen suorat riippuvuudet |
 | `requirements-bootstrap.txt` | Paketit, jotka pipeline asentaa ennen tarkastuksia (PyYAML ja uv) |
+| `policy/vulnerability-exceptions.yml` | Määräaikaisesti hyväksytyt tunnetut haavoittuvuudet |
 | `requirements*.lock.txt` | Generoidut lukitustiedostot: koko riippuvuuspuu versioineen ja hasheineen (vrt. `package-lock.json`) |
 | `scripts/check_approved_libraries.py` | Sääntö: jokainen riippuvuus on lukittu hyväksyttyyn versioon |
 | `scripts/lock_files.py` | Lukitustiedostojen päivitys (`update`) ja tarkastus (`check`) |
+| `scripts/check_vulnerabilities.py` | Sääntö: lukitustiedostoissa ei ole tunnettuja haavoittuvuuksia |
 | `scripts/check_precommit_config.py` | Sääntö: vain paikalliset git-hookit, joiden riippuvuudet on lukittu |
 | `scripts/azure_devops.py` | Hylkäyksen syyt Azure DevOpsin PR-näkymään |
-| `.pre-commit-config.yaml` | Git-hookit: tarkastukset commitissa, testit pushissa |
+| `.pre-commit-config.yaml` | Git-hookit: tarkastukset commitissa, testit ja haavoittuvuudet pushissa |
 | `tests/` | Tarkastussääntöjen testit (pytest) |
-| `azure-pipelines.yml` | Pipeline: tarkastukset → kehitystyökalujen asennus → testit → auditointievidenssi |
+| `azure-pipelines.yml` | Pipeline: tarkastukset → kehitystyökalujen asennus → testit → haavoittuvuudet → auditointievidenssi. Ajetaan myös yöllä. |
 
 ## Paikallinen käyttö VS Codessa
 
@@ -67,6 +70,7 @@ python scripts/check_approved_libraries.py   # versiot lukittu ja hyväksytty?
 python scripts/lock_files.py check           # lukitustiedostot ajan tasalla?
 python -m pip install --require-hashes --only-binary :all: -r requirements-dev.lock.txt
 python -m pytest
+python scripts/check_vulnerabilities.py      # tunnetut haavoittuvuudet?
 ```
 
 Kun muutat requirements-tiedostoa, päivitä lukitustiedostot:
@@ -86,6 +90,7 @@ Samat vaiheet löytyvät myös VS Code -taskeina (**Terminal → Run Task…**).
 | **Päivitä lukitustiedostot** | – |
 | **Asenna kehitystyökalut**: ajaa tarkastukset ensin | – |
 | **Aja testit** | oletus-test-task |
+| **Tarkasta haavoittuvuudet** | – |
 | **Asenna git-hookit**: asentaa kehitystyökalut ensin | – |
 | **Aja git-hookit kaikille tiedostoille** | – |
 
@@ -94,6 +99,8 @@ Raportit syntyvät kansioon `artifacts/` (ei versionhallinnassa):
 ```text
 artifacts/approved-libraries-report.txt   # ihmisen luettava
 artifacts/approved-libraries-report.json  # koneluettava auditointievidenssi
+artifacts/vulnerability-report.txt        # haavoittuvuustarkastus
+artifacts/vulnerability-report.json
 ```
 
 ## Hyväksytty tapaus
@@ -145,7 +152,7 @@ Samat tarkastukset voi ajaa jo kehittäjän koneella git-hookeina:
 python -m pre_commit install
 ```
 
-`git commit` tarkastaa riippuvuudet, lukitustiedostot ja hook-asetukset, ja `git push` ajaa testit. Hookit antavat nopean palautteen, mutta ne eivät korvaa pipelinea: `--no-verify` ohittaa ne. Katso [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md).
+`git commit` tarkastaa riippuvuudet, lukitustiedostot ja hook-asetukset, ja `git push` ajaa testit ja haavoittuvuustarkastuksen. Hookit antavat nopean palautteen, mutta ne eivät korvaa pipelinea: `--no-verify` ohittaa ne. Katso [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md).
 
 ## Lukitustiedostot
 
@@ -156,3 +163,7 @@ python -m pre_commit install
 | `npm ci` | `pip install --require-hashes --only-binary :all: -r requirements.lock.txt` |
 
 Lukitustiedostot luo [uv](https://docs.astral.sh/uv/), mutta asennukset tehdään edelleen pipillä. Katso [oppitunnit/03-versioiden-lukitus.md](oppitunnit/03-versioiden-lukitus.md).
+
+## Haavoittuvuudet
+
+`python scripts/check_vulnerabilities.py` tarkastaa kaikkien lukitustiedostojen jokaisen paketin tunnettuja haavoittuvuuksia vasten [pip-auditilla](https://pypi.org/project/pip-audit/). Tarkastus ajetaan pre-push-hookina, jokaisessa PR:ssä ja lisäksi joka yö `main`-haarasta, koska uusia haavoittuvuuksia julkaistaan päivittäin. Haavoittuvuuden voi hyväksyä määräaikaisesti tiedostossa `policy/vulnerability-exceptions.yml`. Katso [oppitunnit/04-haavoittuvuudet.md](oppitunnit/04-haavoittuvuudet.md).

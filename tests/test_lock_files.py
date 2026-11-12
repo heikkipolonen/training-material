@@ -188,6 +188,24 @@ def test_main_check_azure_devops(tmp_path, monkeypatch, capsys):
     assert vso[-1].startswith("##vso[task.complete result=Failed;]")
 
 
+def test_main_update_can_upgrade_one_package(tmp_path, monkeypatch):
+    # Fixing a vulnerability in a transitive dependency: uv keeps every
+    # existing version unless told to upgrade a specific package.
+    monkeypatch.chdir(tmp_path)
+    calls = []
+
+    def compile_lock(source: Path, output: Path, upgrade: tuple[str, ...] = ()) -> None:
+        calls.append((str(source), str(output), upgrade))
+
+    exit_code = main(
+        ["update", "--upgrade-package", "requests"],
+        locks=[LockFile("requirements.txt", "requirements.lock.txt")],
+        compile_lock=compile_lock,
+    )
+    assert exit_code == 0
+    assert calls == [("requirements.txt", "requirements.lock.txt", ("requests",))]
+
+
 def test_main_check_passes(tmp_path, monkeypatch, capsys):
     (tmp_path / "requirements.lock.txt").write_text(LOCK, encoding="utf-8")
     monkeypatch.chdir(tmp_path)

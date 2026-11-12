@@ -29,6 +29,16 @@ Jokaisesta requirements-tiedostosta generoidaan lukitustiedosto (`requirements*.
 - Pipeline asentaa ennen tarkastuksia vain tarkastusten tarvitsemat paketit (`requirements-bootstrap.lock.txt`: PyYAML ja uv). Kehitystyökalut asennetaan vasta hyväksyttyjen tarkastusten jälkeen.
 - Lukitustiedostot tallennetaan auditointievidenssiin: ne kertovat tarkalleen, mitä asennettiin.
 
+## Haavoittuvuudet
+
+Lukitustiedostoissa ei saa olla paketteja, joissa on tunnettu haavoittuvuus.
+
+- Tarkastus koskee kaikkia lukitustiedostojen paketteja, myös transitiivisia ja vain muilla käyttöjärjestelmillä asennettavia (`scripts/check_vulnerabilities.py`).
+- Tarkastus ajetaan pre-push-hookina, jokaisessa PR:ssä ja joka yö `main`-haarasta.
+- Kun `main`-haarassa on tunnettu haavoittuvuus, myös siihen liittymättömät pushit ja PR:t hylätään, kunnes se on korjattu tai hyväksytty poikkeuksella.
+- Ensisijainen korjaus on päivittää paketti korjattuun versioon. Transitiivinen riippuvuus päivitetään komennolla `python scripts/lock_files.py update --upgrade-package <paketti>`.
+- Jos korjattua versiota ei voi ottaa käyttöön, haavoittuvuuden voi hyväksyä määräaikaisesti tiedostossa `policy/vulnerability-exceptions.yml` (tunniste, tiketti ja päättymispäivä).
+
 ## Poikkeukset
 
 Poikkeus kirjataan rekisterin `exceptions`-listaan. Jokaisella poikkeuksella on pakollinen tikettiviite (`ticket`), päättymispäivä (`expires`) ja versiot (`versions`), joita se koskee. Poikkeus on voimassa päättymispäivään asti.
@@ -43,9 +53,9 @@ Git-hookit ovat kehittäjän apuväline, eivät tietoturvakontrolli: ne voi jät
 
 ## Rajaukset
 
-- Ihminen hyväksyy vain suorat riippuvuudet. Transitiiviset riippuvuudet on lukittu ja näkyvät lukitustiedostossa, mutta niitä ei hyväksytä yksitellen eikä niiden haavoittuvuuksia tarkasteta (seuraavan osion aihe).
+- Ihminen hyväksyy vain suorat riippuvuudet. Transitiiviset riippuvuudet on lukittu, ne näkyvät lukitustiedostossa ja niiden tunnetut haavoittuvuudet tarkastetaan, mutta niitä ei hyväksytä yksitellen.
+- Haavoittuvuustarkastus löytää vain julkisesti raportoidut haavoittuvuudet. Se ei tunnista haitallista koodia, jolle ei ole vielä julkaistu ilmoitusta.
 - Ainoa hyväksytty projektikirjasto on `arcgis`.
-- Tarkastus ei arvioi tunnettuja haavoittuvuuksia.
 - Tarkastus ei arvioi lisenssejä.
 - Versioita verrataan merkkijonoina: `2.4` ja `2.4.0` ovat eri versioita.
 - Pull requestin muutokset tiedostoihin `azure-pipelines.yml` ja `requirements-bootstrap*` ajautuvat pipelinessa ennen tarkastuksia. Niille kannattaa asettaa pakollinen katselmoija.
