@@ -21,10 +21,20 @@ repos:
       - id: approved-libraries
         name: Tarkasta hyväksytyt kirjastot
         language: python
-        additional_dependencies: [pyyaml]
+        additional_dependencies: ["pyyaml==6.0.3"]
         entry: python scripts/check_approved_libraries.py
         # Ajetaan vain, kun riippuvuudet tai rekisteri muuttuvat.
         files: ^(requirements.*\.txt|policy/.*)$
+        pass_filenames: false
+
+      # Lukitustiedostojen pitää vastata requirements-tiedostoja.
+      # Vaatii verkkoyhteyden (uv hakee pakettitiedot PyPI:stä).
+      - id: lock-files
+        name: Tarkasta lukitustiedostot
+        language: python
+        additional_dependencies: ["uv==0.13.5"]
+        entry: python scripts/lock_files.py check
+        files: ^requirements.*\.txt$
         pass_filenames: false
 
       # Estää kolmannen osapuolen hookin päätymisen committiin vahingossa.
@@ -35,7 +45,7 @@ repos:
       - id: local-hooks-only
         name: Salli vain paikalliset hookit
         language: python
-        additional_dependencies: [pyyaml]
+        additional_dependencies: ["pyyaml==6.0.3"]
         entry: python scripts/check_precommit_config.py
         files: ^\.pre-commit-config\.yaml$
         pass_filenames: false
@@ -45,7 +55,7 @@ repos:
       - id: tests
         name: Aja testit
         language: python
-        additional_dependencies: [pytest, pyyaml]
+        additional_dependencies: ["pytest==9.1.1", "pyyaml==6.0.3"]
         entry: python -m pytest -q
         stages: [pre-push]
         always_run: true

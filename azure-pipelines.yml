@@ -21,25 +21,35 @@ steps:
   inputs:
     versionSpec: '3.11'
 
-# Asennetaan ensin VAIN tarkastusskriptin tarvitsema PyYAML. Paketti on nimetty
-# tässä eikä luettu requirements-dev.txt:stä, jotta PR ei voi asentaa agentille
-# hyväksymätöntä pakettia ennen kuin tarkastus on ehtinyt hylätä sen.
-- script: python -m pip install pyyaml
-  displayName: Asenna tarkastusskriptin riippuvuus
+# Kaikki asennukset tehdään lukitustiedostoista:
+#   --require-hashes   jokaisen paketin (myös transitiivisen) hash tarkistetaan
+#   --only-binary :all: vain valmiit paketit (wheel), pakettien build-koodia ei ajeta
 
-# Tarkastaa sekä requirements.txt:n että requirements-dev.txt:n.
+# Asennetaan ensin VAIN tarkastusten tarvitsemat paketit (PyYAML ja uv).
+# Lista on pidetty mahdollisimman lyhyenä, koska nämä asennetaan ennen kuin
+# tarkastus on ehtinyt hylätä mitään.
+- script: 'python -m pip install --require-hashes --only-binary :all: -r requirements-bootstrap.lock.txt'
+  displayName: Asenna tarkastusten riippuvuudet
+
+# Tarkastaa requirements.txt:n, requirements-dev.txt:n ja requirements-bootstrap.txt:n:
+# jokainen riippuvuus on lukittu tarkkaan versioon, ja versio on hyväksytty.
 # --azure-devops: hylkäyksen syyt näkyvät PR:n tarkastusnäkymässä luettavina
 # virheinä, ja task merkitään epäonnistuneeksi logging-komennolla.
 - script: python scripts/check_approved_libraries.py --azure-devops
-  displayName: Tarkasta hyväksytyt kirjastot
+  displayName: Tarkasta hyväksytyt kirjastot ja versiot
 
 # Sama sääntö ajetaan myös pre-commit-hookina, mutta hookin voi ohittaa
 # (--no-verify). Pipelinessa sitä ei voi ohittaa.
 - script: python scripts/check_precommit_config.py --azure-devops
-  displayName: Tarkasta pre-commit-hookien alkuperä
+  displayName: Tarkasta pre-commit-hookit
+
+# Lukitustiedostojen pitää vastata requirements-tiedostoja. Muuten PR voisi
+# lisätä paketin suoraan lukitustiedostoon ohi hyväksyntätarkastuksen.
+- script: python scripts/lock_files.py check --azure-devops
+  displayName: Tarkasta lukitustiedostot
 
 # Kehitystyökalut asennetaan vasta, kun ne on todettu hyväksytyiksi.
-- script: python -m pip install -r requirements-dev.txt
+- script: 'python -m pip install --require-hashes --only-binary :all: -r requirements-dev.lock.txt'
   displayName: Asenna kehitystyökalut
 
 - script: python -m pytest --junitxml=test-results/junit.xml
@@ -53,6 +63,11 @@ steps:
     testResultsFiles: test-results/junit.xml
     testRunTitle: Tarkastussäännön testit
     failTaskOnMissingResultsFile: false
+
+# Lukitustiedostot ovat osa evidenssiä: ne kertovat tarkalleen, mitä asennettiin.
+- script: mkdir -p artifacts && cp requirements*.lock.txt artifacts/
+  condition: always()
+  displayName: Lisää lukitustiedostot evidenssiin
 
 # Raportti julkaistaan myös hylätystä ajosta (condition: always()).
 - task: PublishPipelineArtifact@1

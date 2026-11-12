@@ -1,8 +1,9 @@
-# Kehitystyökalujen riippuvuudet (tarkastusskripti ja testit).
+# Kehitystyökalujen suorat riippuvuudet (tarkastusskriptit, testit, hookit).
 # Sama hyväksyntälinjaus koskee myös näitä: jokaisen paketin pitää löytyä
-# tiedostosta policy/approved-libraries.yml.
+# tiedostosta policy/approved-libraries.yml hyväksytyssä versiossa.
 #
-# Versioiden lukitus (pinning) ja hash-tarkistus käsitellään myöhemmässä osiossa.
-pyyaml
-pytest
-pre-commit
+# Muutoksen jälkeen päivitä lukitustiedosto: python scripts/lock_files.py update
+pyyaml==6.0.3
+pytest==9.1.1
+pre-commit==4.7.0
+uv==0.13.5

@@ -6,32 +6,49 @@
 # tiedostolle kannattaa asettaa pakollinen katselmoija (Branch policies →
 # Automatically included reviewers → polku /policy/*), jotta kehittäjä ei voi
 # hyväksyä omaa riippuvuuttaan samassa PR:ssä.
+#
+# Hyväksyntä koskee aina tiettyjä versioita (versions). Uusi versio
+# hyväksytään lisäämällä se listaan PR:ssä. Kirjoita versiot lainausmerkkeihin:
+# YAML lukisi esim. 1.10 numeroksi 1.1.
 
 approved:
   - name: arcgis
+    versions: ["2.4.4"]
     approved_by: training-security-team
     approved_on: 2026-11-01
     reason: Esri ArcGIS API for Python
 
-  # Kehitystyökalut (requirements-dev.txt). Sama linjaus koskee myös niitä:
-  # työkalu ajetaan pipeline-agentilla ja sillä on pääsy lähdekoodiin.
+  # Kehitystyökalut (requirements-dev.txt ja requirements-bootstrap.txt).
+  # Sama linjaus koskee myös niitä: työkalu ajetaan pipeline-agentilla ja
+  # sillä on pääsy lähdekoodiin.
   - name: pyyaml
+    versions: ["6.0.3"]
     approved_by: training-security-team
     approved_on: 2026-11-12
     reason: Hyväksyntärekisterin lukeminen tarkastusskriptissä
   - name: pytest
+    versions: ["9.1.1"]
     approved_by: training-security-team
     approved_on: 2026-11-12
     reason: Tarkastussäännön testaus
   - name: pre-commit
+    versions: ["4.7.0"]
     approved_by: training-security-team
     approved_on: 2026-11-12
     reason: Git-hookit; vain paikalliset hookit sallittu (scripts/check_precommit_config.py)
+  - name: uv
+    versions: ["0.13.5"]
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: Lukitustiedostojen luonti (scripts/lock_files.py); pip asentaa
+      edelleen kaiken. Valittu yli kaksi viikkoa vanha versio uusimman sijaan.
 
-# Poikkeus on aina määräaikainen. Tarkastus hylkää riippuvuuden, kun
-# 'expires'-päivä on ohitettu. Pakolliset kentät: name, ticket, expires.
+# Poikkeus on aina määräaikainen ja koskee vain lueteltuja versioita.
+# Tarkastus hylkää riippuvuuden, kun 'expires'-päivä on ohitettu.
+# Pakolliset kentät: name, versions, ticket, expires.
 exceptions: []
 #  - name: example-package
+#    versions: ["1.0.0"]
 #    ticket: SEC-123
 #    approved_by: training-security-team
 #    expires: 2026-12-31

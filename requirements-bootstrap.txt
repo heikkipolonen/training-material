@@ -1,0 +1,7 @@
+# Pipelinen esivaihe: paketit, jotka asennetaan ENNEN tarkastuksia, koska
+# tarkastusskriptit tarvitsevat niitä (PyYAML rekisterin lukemiseen, uv
+# lukitustiedostojen tarkastukseen). Pidä tämä lista mahdollisimman lyhyenä.
+#
+# Muutoksen jälkeen päivitä lukitustiedosto: python scripts/lock_files.py update
+pyyaml==6.0.3
+uv==0.13.5

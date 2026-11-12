@@ -19,6 +19,7 @@ from azure_devops import failure_commands
 
 DEFAULT_CONFIG_FILE = Path(".pre-commit-config.yaml")
 ALLOWED_REPOS = {"local"}
+REMEDIATION = "Käytä vain paikallisia hookeja (repo: local)."
 
 
 def check_config(path: Path) -> list[str]:
@@ -61,12 +62,12 @@ def main(argv: list[str] | None = None) -> int:
     for problem in problems:
         print(f"SYY: {problem}")
     if problems:
-        print("KORJAUSOHJE: Käytä vain paikallisia hookeja (repo: local).")
+        print(f"KORJAUSOHJE: {REMEDIATION}")
 
     if args.azure_devops:
         if problems:
             commands = failure_commands(
-                [*problems, "Korjausohje: Käytä vain paikallisia hookeja (repo: local)."],
+                [*problems, f"Korjausohje: {REMEDIATION}"],
                 "Tarkastus hylkäsi pre-commit-asetukset",
             )
             print("\n".join(commands))

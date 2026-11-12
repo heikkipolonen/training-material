@@ -2,16 +2,16 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Asenna tarkastusskriptin riippuvuus",
-      "detail": "Asentaa vain PyYAML:n, jota tarkastusskripti tarvitsee.",
+      "label": "Asenna tarkastusten riippuvuudet",
+      "detail": "Asentaa PyYAML:n ja uv:n lukitustiedostosta hash-tarkistuksella.",
       "type": "process",
       "command": "${command:python.interpreterPath}",
-      "args": ["-m", "pip", "install", "pyyaml"],
+      "args": ["-m", "pip", "install", "--require-hashes", "--only-binary", ":all:", "-r", "requirements-bootstrap.lock.txt"],
       "problemMatcher": []
     },
     {
       "label": "Tarkasta hyväksytty kirjasto",
-      "detail": "Tarkastaa requirements.txt:n ja requirements-dev.txt:n hyväksyntärekisteriä vasten.",
+      "detail": "Tarkastaa, että jokainen riippuvuus on lukittu hyväksyttyyn versioon.",
       "type": "process",
       "command": "${command:python.interpreterPath}",
       "args": ["scripts/check_approved_libraries.py"],
@@ -19,17 +19,34 @@
       "problemMatcher": []
     },
     {
-      "label": "Asenna kehitystyökalut",
-      "detail": "Asentaa requirements-dev.txt:n vasta, kun tarkastus on hyväksynyt sen.",
+      "label": "Tarkasta lukitustiedostot",
+      "detail": "Tarkastaa, että lukitustiedostot vastaavat requirements-tiedostoja (vaatii verkkoyhteyden).",
       "type": "process",
       "command": "${command:python.interpreterPath}",
-      "args": ["-m", "pip", "install", "-r", "requirements-dev.txt"],
-      "dependsOn": ["Tarkasta hyväksytty kirjasto"],
+      "args": ["scripts/lock_files.py", "check"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Päivitä lukitustiedostot",
+      "detail": "Luo lukitustiedostot uudelleen uv:llä requirements-tiedostojen muutoksen jälkeen.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["scripts/lock_files.py", "update"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Asenna kehitystyökalut",
+      "detail": "Asentaa kehitystyökalut lukitustiedostosta vasta, kun tarkastukset ovat hyväksyneet ne.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "pip", "install", "--require-hashes", "--only-binary", ":all:", "-r", "requirements-dev.lock.txt"],
+      "dependsOrder": "sequence",
+      "dependsOn": ["Tarkasta hyväksytty kirjasto", "Tarkasta lukitustiedostot"],
       "problemMatcher": []
     },
     {
       "label": "Aja testit",
-      "detail": "Ajaa tarkastussäännön testit pytestillä.",
+      "detail": "Ajaa tarkastussääntöjen testit pytestillä.",
       "type": "process",
       "command": "${command:python.interpreterPath}",
       "args": ["-m", "pytest"],
@@ -55,11 +72,10 @@
     },
     {
       "label": "Koko ketju (kuten pipeline)",
-      "detail": "PyYAML → tarkastus → kehitystyökalut → testit. Pysähtyy, jos tarkastus hylkää.",
+      "detail": "Tarkastusten riippuvuudet → tarkastukset → kehitystyökalut → testit. Pysähtyy, jos tarkastus hylkää.",
       "dependsOrder": "sequence",
       "dependsOn": [
-        "Asenna tarkastusskriptin riippuvuus",
-        "Tarkasta hyväksytty kirjasto",
+        "Asenna tarkastusten riippuvuudet",
         "Asenna kehitystyökalut",
         "Aja testit"
       ],

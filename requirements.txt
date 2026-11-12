@@ -1,5 +1,9 @@
-# Ainoa hyväksytty esimerkkikirjasto
-arcgis
+# Projektin suorat riippuvuudet (vrt. npm:n package.json).
+# Jokainen riippuvuus lukitaan tarkkaan versioon, ja version pitää olla
+# hyväksytty tiedostossa policy/approved-libraries.yml.
+#
+# Muutoksen jälkeen päivitä lukitustiedosto: python scripts/lock_files.py update
+arcgis==2.4.4
 
 # Koulutuksessa hylkäys testataan poistamalla seuraavalta riviltä kommenttimerkki:
 # unknown-demo-package==1.0.0
