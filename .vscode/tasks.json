@@ -62,6 +62,22 @@
       "problemMatcher": []
     },
     {
+      "label": "Tarkasta salaisuudet",
+      "detail": "Etsii salasanoja ja API-avaimia kaikista versionhallinnan tiedostoista.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["scripts/check_secrets.py"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Tarkasta oma koodi (SAST)",
+      "detail": "Tarkastaa src/- ja scripts/-kansioiden Python-koodin Banditilla.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["scripts/check_sast.py"],
+      "problemMatcher": []
+    },
+    {
       "label": "Luo SBOM",
       "detail": "Luo tuotteen SBOM:n (CycloneDX) tiedostoon artifacts/sbom.json.",
       "type": "process",
@@ -93,6 +109,8 @@
       "dependsOn": [
         "Asenna tarkastusten riippuvuudet",
         "Asenna kehitystyökalut",
+        "Tarkasta salaisuudet",
+        "Tarkasta oma koodi (SAST)",
         "Aja testit",
         "Tarkasta haavoittuvuudet"
       ],

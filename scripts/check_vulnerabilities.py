@@ -25,7 +25,8 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 import json
 from pathlib import Path
-import subprocess
+# pip-audit ajetaan kiinteällä komennolla ilman shelliä; ks. pip_audit.
+import subprocess  # nosec B404
 import sys
 import tempfile
 from typing import Any, Callable
@@ -58,7 +59,8 @@ def pip_audit(pins: list[Pin]) -> list[dict[str, Any]]:
     with tempfile.TemporaryDirectory() as temp_dir:
         requirements = Path(temp_dir) / "pins.txt"
         requirements.write_text("".join(f"{n}=={v}\n" for n, v in pins), encoding="utf-8")
-        result = subprocess.run(
+        # Kiinteä komento ilman shelliä; syötteenä on itse luotu väliaikaistiedosto.
+        result = subprocess.run(  # nosec B603
             [sys.executable, "-m", "pip_audit", "-r", str(requirements),
              "--disable-pip", "--no-deps", "--progress-spinner", "off", "-f", "json"],
             capture_output=True,

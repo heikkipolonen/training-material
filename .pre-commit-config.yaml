@@ -37,6 +37,22 @@ repos:
         files: ^requirements.*\.txt$
         pass_filenames: false
 
+      # Salaisuudet ennen committia: kun salaisuus on pushattu, se on vuotanut.
+      # Tarkastaa kaikki muuttuneet tiedostot (myös konfiguraatiot ja notebookit).
+      - id: secrets
+        name: Tarkasta salaisuudet
+        language: python
+        additional_dependencies: ["detect-secrets==1.5.0"]
+        entry: python scripts/check_secrets.py
+
+      # Oman Python-koodin riskialttiit koodimallit (SAST).
+      - id: sast
+        name: Tarkasta oma koodi (SAST)
+        language: python
+        additional_dependencies: ["bandit==1.9.4"]
+        entry: python scripts/check_sast.py
+        files: ^(src|scripts)/.*\.py$
+
       # Estää kolmannen osapuolen hookin päätymisen committiin vahingossa.
       # HUOM: pre-commit lataa ja asentaa kaikki hookit ENNEN kuin yksikään ajetaan.
       # Tämä hook estää siis commitin, mutta ei sitä, että kolmannen osapuolen
@@ -55,7 +71,7 @@ repos:
       - id: tests
         name: Aja testit
         language: python
-        additional_dependencies: ["pytest==9.1.1", "pyyaml==6.0.3"]
+        additional_dependencies: ["pytest==9.1.1", "pyyaml==6.0.3", "detect-secrets==1.5.0"]
         entry: python -m pytest -q
         stages: [pre-push]
         always_run: true

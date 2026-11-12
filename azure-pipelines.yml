@@ -64,6 +64,14 @@ steps:
 - script: 'python -m pip install --require-hashes --only-binary :all: -r requirements-dev.lock.txt'
   displayName: Asenna kehitystyökalut
 
+# Oma koodi: salaisuudet kaikista versionhallinnan tiedostoista ja riskialttiit
+# koodimallit Python-koodista (SAST). Molemmat ajetaan myös commit-hookeina.
+- script: python scripts/check_secrets.py --azure-devops
+  displayName: Tarkasta salaisuudet
+
+- script: python scripts/check_sast.py --azure-devops
+  displayName: Tarkasta oma koodi (SAST)
+
 # SBOM (Software Bill of Materials): lista kaikista paketeista, joista tuote
 # koostuu, standardimuodossa (CycloneDX). Luodaan tuotteen lukitustiedostosta
 # jokaisessa ajossa ja tallennetaan auditointievidenssiin. Mitään ei asenneta.

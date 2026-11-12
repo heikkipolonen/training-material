@@ -54,6 +54,19 @@ approved:
     approved_on: 2026-11-12
     reason: SBOM:n (CycloneDX) luonti lukitustiedostosta. CycloneDX-projektin
       virallinen työkalu. Uusin yli kolme viikkoa vanha versio (8.0.1 on uudempi).
+  - name: bandit
+    versions: ["1.9.4"]
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: Oman koodin tietoturvatarkastus (SAST, scripts/check_sast.py). PyCQA:n
+      ylläpitämä, säännöt sisäänrakennettuja, toimii ilman verkkoyhteyttä.
+  - name: detect-secrets
+    versions: ["1.5.0"]
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: Salaisuuksien tunnistus (scripts/check_secrets.py). HUOM ylläpito on
+      hidastunut (viimeisin julkaisu 5/2024). Aktiivisesti ylläpidetty vaihtoehto
+      on Betterleaks, mutta se ei ole Python-paketti. Ajetaan aina --no-verify.
 
 # Poikkeus on aina määräaikainen ja koskee vain lueteltuja versioita.
 # Tarkastus hylkää riippuvuuden, kun 'expires'-päivä on ohitettu.

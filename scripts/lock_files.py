@@ -24,7 +24,8 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 import re
-import subprocess
+# uv ajetaan kiinteällä komennolla ilman shelliä; ks. uv_compile.
+import subprocess  # nosec B404
 import sys
 import tempfile
 from typing import Callable
@@ -69,7 +70,8 @@ def uv_compile(source: Path, output: Path, upgrade: tuple[str, ...] = ()) -> Non
     transitiiviseen riippuvuuteen).
     """
     upgrade_options = [option for name in upgrade for option in ("--upgrade-package", name)]
-    result = subprocess.run(
+    # Kiinteä komento ilman shelliä; polut ovat repositorion tiedostoja.
+    result = subprocess.run(  # nosec B603
         [sys.executable, "-m", "uv", "pip", "compile", str(source), "-o", str(output),
          *UV_COMPILE_OPTIONS, *upgrade_options],
         capture_output=True,

@@ -39,6 +39,16 @@ Lukitustiedostoissa ei saa olla paketteja, joissa on tunnettu haavoittuvuus.
 - Ensisijainen korjaus on päivittää paketti korjattuun versioon. Transitiivinen riippuvuus päivitetään komennolla `python scripts/lock_files.py update --upgrade-package <paketti>`.
 - Jos korjattua versiota ei voi ottaa käyttöön, haavoittuvuuden voi hyväksyä määräaikaisesti tiedostossa `policy/vulnerability-exceptions.yml` (tunniste, tiketti ja päättymispäivä).
 
+## Oma koodi: salaisuudet ja SAST
+
+Versionhallinnassa ei saa olla salaisuuksia (salasanoja, API-avaimia, tokeneita), eikä omassa koodissa saa olla tunnettuja riskialttiita koodimalleja.
+
+- Salaisuudet tarkastetaan kaikista versionhallinnan tiedostoista (`scripts/check_secrets.py`: detect-secrets ja oma ArcGIS-avaintunnistin), aina ilman verkkoyhteyttä palveluntarjoajiin (`--no-verify`).
+- Python-koodi (`src/`, `scripts/`) tarkastetaan Banditilla (`scripts/check_sast.py`). Jokainen löydös hylkää tarkastuksen vakavuudesta riippumatta.
+- Molemmat ajetaan commit-hookeina ja jokaisessa PR:ssä.
+- Perusteltu poikkeus merkitään riville (`# nosec <tunniste>` tai `# pragma: allowlist secret`), ja perustelu kirjoitetaan edelliselle riville. Poikkeukset katselmoidaan kuten muukin koodi.
+- Pushattu salaisuus katsotaan vuotaneeksi: se mitätöidään ja korvataan uudella.
+
 ## SBOM
 
 Jokaisesta pipeline-ajosta tallennetaan tuotteen SBOM (CycloneDX JSON, `sbom.json`) auditointievidenssiin. SBOM luodaan tuotteen lukitustiedostosta (`requirements.lock.txt`). Kehitystyökalut eivät ole osa toimitettavaa tuotetta, joten ne eivät ole SBOM:ssa.
@@ -61,6 +71,9 @@ Git-hookit ovat kehittäjän apuväline, eivät tietoturvakontrolli: ne voi jät
 - Haavoittuvuustarkastus löytää vain julkisesti raportoidut haavoittuvuudet. Se ei tunnista haitallista koodia, jolle ei ole vielä julkaistu ilmoitusta.
 - Ainoa hyväksytty projektikirjasto on `arcgis`.
 - Tarkastus ei arvioi lisenssejä.
+- SAST ja salaisuuksien tunnistus löytävät vain tunnettuja malleja. Esimerkiksi ilman nimeä annettu salasana (`GIS(url, "admin", "<salasana>")`) tai ArcGISin `verify_cert=False` eivät jää kiinni.
+- Salaisuuksien tarkastus katsoo vain nykyisiä tiedostoja, ei git-historiaa.
+- detect-secretsin ylläpito on hidastunut (viimeisin julkaisu 5/2024). Aktiivisesti ylläpidetty vaihtoehto on Betterleaks.
 - Versioita verrataan merkkijonoina: `2.4` ja `2.4.0` ovat eri versioita.
 - Pull requestin muutokset tiedostoihin `azure-pipelines.yml` ja `requirements-bootstrap*` ajautuvat pipelinessa ennen tarkastuksia. Niille kannattaa asettaa pakollinen katselmoija.
 - Lista on vain koulutusprototyyppi, ei virallinen hyväksyntälista.

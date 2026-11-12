@@ -28,6 +28,7 @@ Jokainen oppitunti on oma haaransa, ja seuraava oppitunti jatkaa edellisen loppu
 | `lesson/02-git-hooks` | Git-hookit: sama tarkastus kehittäjän koneelle | [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md) |
 | `lesson/03-pinning` | Versioiden lukitus ja lukitustiedostot (vrt. `package-lock.json`) | [oppitunnit/03-versioiden-lukitus.md](oppitunnit/03-versioiden-lukitus.md) |
 | `lesson/04-vulnerability-scanning` | Tunnettujen haavoittuvuuksien tarkastus koko riippuvuuspuulle ja SBOM | [oppitunnit/04-haavoittuvuudet.md](oppitunnit/04-haavoittuvuudet.md) |
+| `lesson/05-sast-and-secrets` | Oma koodi: SAST ja salaisuuksien tunnistus | [oppitunnit/05-sast-ja-salaisuudet.md](oppitunnit/05-sast-ja-salaisuudet.md) |
 
 ## Linjaus
 
@@ -50,6 +51,10 @@ Rekisteri (politiikka) ja tarkastusskripti (sääntö) ovat erillään, jotta re
 | `scripts/check_approved_libraries.py` | Sääntö: jokainen riippuvuus on lukittu hyväksyttyyn versioon |
 | `scripts/lock_files.py` | Lukitustiedostojen päivitys (`update`) ja tarkastus (`check`) |
 | `scripts/check_vulnerabilities.py` | Sääntö: lukitustiedostoissa ei ole tunnettuja haavoittuvuuksia |
+| `scripts/check_secrets.py` | Sääntö: versionhallinnassa ei ole salaisuuksia (detect-secrets) |
+| `scripts/arcgis_secret_detector.py` | Oma detect-secrets-tunnistin ArcGIS API -avaimille |
+| `scripts/check_sast.py` | Sääntö: omassa koodissa ei ole riskialttiita koodimalleja (Bandit) |
+| `src/` | Esimerkki-ArcGIS-skripti, joka lukee tunnistetiedot ympäristömuuttujista |
 | `scripts/check_precommit_config.py` | Sääntö: vain paikalliset git-hookit, joiden riippuvuudet on lukittu |
 | `scripts/azure_devops.py` | Hylkäyksen syyt Azure DevOpsin PR-näkymään |
 | `.pre-commit-config.yaml` | Git-hookit: tarkastukset commitissa, testit ja haavoittuvuudet pushissa |
@@ -71,6 +76,8 @@ python scripts/lock_files.py check           # lukitustiedostot ajan tasalla?
 python -m pip install --require-hashes --only-binary :all: -r requirements-dev.lock.txt
 python -m pytest
 python scripts/check_vulnerabilities.py      # tunnetut haavoittuvuudet?
+python scripts/check_secrets.py              # salaisuuksia koodissa?
+python scripts/check_sast.py                 # riskialttiita koodimalleja?
 ```
 
 Kun muutat requirements-tiedostoa, päivitä lukitustiedostot:
@@ -153,7 +160,7 @@ Samat tarkastukset voi ajaa jo kehittäjän koneella git-hookeina:
 python -m pre_commit install
 ```
 
-`git commit` tarkastaa riippuvuudet, lukitustiedostot ja hook-asetukset, ja `git push` ajaa testit ja haavoittuvuustarkastuksen. Hookit antavat nopean palautteen, mutta ne eivät korvaa pipelinea: `--no-verify` ohittaa ne. Katso [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md).
+`git commit` tarkastaa riippuvuudet, lukitustiedostot, hook-asetukset, salaisuudet ja oman koodin (SAST), ja `git push` ajaa testit ja haavoittuvuustarkastuksen. Hookit antavat nopean palautteen, mutta ne eivät korvaa pipelinea: `--no-verify` ohittaa ne. Katso [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md).
 
 ## Lukitustiedostot
 
@@ -176,3 +183,9 @@ Pipeline luo jokaisessa ajossa tuotteen SBOM:n (*Software Bill of Materials*) [C
 ```powershell
 python -m cyclonedx_py requirements requirements.lock.txt --output-format JSON -o artifacts/sbom.json
 ```
+
+## Oma koodi: SAST ja salaisuudet
+
+`python scripts/check_sast.py` tarkastaa oman Python-koodin [Banditilla](https://pypi.org/project/bandit/), ja `python scripts/check_secrets.py` etsii salasanoja ja API-avaimia kaikista versionhallinnan tiedostoista [detect-secrets](https://pypi.org/project/detect-secrets/)-työkalulla ja omalla ArcGIS-avaintunnistimella. Molemmat ajetaan commit-hookeina ja pipelinessa. Perusteltu poikkeus merkitään riville (`# nosec <tunniste>` tai `# pragma: allowlist secret`) ja perustelu edelliselle riville.
+
+detect-secretsin ylläpito on hidastunut. Oikeaan projektiin aktiivisesti ylläpidetty [Betterleaks](https://github.com/betterleaks/betterleaks) on parempi vaihtoehto. Katso [oppitunnit/05-sast-ja-salaisuudet.md](oppitunnit/05-sast-ja-salaisuudet.md).
