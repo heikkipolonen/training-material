@@ -1,0 +1,34 @@
+# Hyväksyttyjen Python-kirjastojen rekisteri.
+#
+# KOULUTUSPROTOTYYPPI. EI VIRALLINEN YRITYS- TAI ASIAKASTASON HYVÄKSYNTÄLISTA.
+#
+# Tämän tiedoston muutokset ovat politiikkamuutoksia. Azure DevOpsissa
+# tiedostolle kannattaa asettaa pakollinen katselmoija (Branch policies →
+# Automatically included reviewers → polku /policy/*), jotta kehittäjä ei voi
+# hyväksyä omaa riippuvuuttaan samassa PR:ssä.
+
+approved:
+  - name: arcgis
+    approved_by: training-security-team
+    approved_on: 2026-11-01
+    reason: Esri ArcGIS API for Python
+
+  # Kehitystyökalut (requirements-dev.txt). Sama linjaus koskee myös niitä:
+  # työkalu ajetaan pipeline-agentilla ja sillä on pääsy lähdekoodiin.
+  - name: pyyaml
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: Hyväksyntärekisterin lukeminen tarkastusskriptissä
+  - name: pytest
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: Tarkastussäännön testaus
+
+# Poikkeus on aina määräaikainen. Tarkastus hylkää riippuvuuden, kun
+# 'expires'-päivä on ohitettu. Pakolliset kentät: name, ticket, expires.
+exceptions: []
+#  - name: example-package
+#    ticket: SEC-123
+#    approved_by: training-security-team
+#    expires: 2026-12-31
+#    reason: Lyhytaikainen poikkeus koulutusta varten

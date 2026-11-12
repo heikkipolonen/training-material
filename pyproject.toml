@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+# Lets the tests import scripts/check_approved_libraries.py directly.
+pythonpath = ["scripts"]
+testpaths = ["tests"]
