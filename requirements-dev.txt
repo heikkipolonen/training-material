@@ -1,0 +1,7 @@
+# Kehitystyökalujen riippuvuudet (tarkastusskripti ja testit).
+# Sama hyväksyntälinjaus koskee myös näitä: jokaisen paketin pitää löytyä
+# tiedostosta policy/approved-libraries.yml.
+#
+# Versioiden lukitus (pinning) ja hash-tarkistus käsitellään myöhemmässä osiossa.
+pyyaml
+pytest

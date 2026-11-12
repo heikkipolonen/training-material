@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Asenna tarkastusskriptin riippuvuus",
+      "detail": "Asentaa vain PyYAML:n, jota tarkastusskripti tarvitsee.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "pip", "install", "pyyaml"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Tarkasta hyväksytty kirjasto",
+      "detail": "Tarkastaa requirements.txt:n ja requirements-dev.txt:n hyväksyntärekisteriä vasten.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["scripts/check_approved_libraries.py"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Asenna kehitystyökalut",
+      "detail": "Asentaa requirements-dev.txt:n vasta, kun tarkastus on hyväksynyt sen.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "pip", "install", "-r", "requirements-dev.txt"],
+      "dependsOn": ["Tarkasta hyväksytty kirjasto"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Aja testit",
+      "detail": "Ajaa tarkastussäännön testit pytestillä.",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["-m", "pytest"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Koko ketju (kuten pipeline)",
+      "detail": "PyYAML → tarkastus → kehitystyökalut → testit. Pysähtyy, jos tarkastus hylkää.",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Asenna tarkastusskriptin riippuvuus",
+        "Tarkasta hyväksytty kirjasto",
+        "Asenna kehitystyökalut",
+        "Aja testit"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

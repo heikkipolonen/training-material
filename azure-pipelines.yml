@@ -1,12 +1,13 @@
+# CI-ajo jokaisesta main-haaraan päätyvästä muutoksesta.
 trigger:
   branches:
     include:
       - main
 
-pr:
-  branches:
-    include:
-      - main
+# HUOM: Azure Repos Git ei käytä YAML:n `pr:`-triggeriä. PR-ajot käynnistää
+# main-haaran Branch policy → Build validation (ks. koulutusprosessi.md, kohta E).
+# Siksi PR-triggeri on tässä tarkoituksella pois päältä, ettei se johda harhaan.
+pr: none
 
 pool:
   vmImage: ubuntu-latest
@@ -20,9 +21,33 @@ steps:
   inputs:
     versionSpec: '3.11'
 
+# Asennetaan ensin VAIN tarkastusskriptin tarvitsema PyYAML. Paketti on nimetty
+# tässä eikä luettu requirements-dev.txt:stä, jotta PR ei voi asentaa agentille
+# hyväksymätöntä pakettia ennen kuin tarkastus on ehtinyt hylätä sen.
+- script: python -m pip install pyyaml
+  displayName: Asenna tarkastusskriptin riippuvuus
+
+# Tarkastaa sekä requirements.txt:n että requirements-dev.txt:n.
 - script: python scripts/check_approved_libraries.py
   displayName: Tarkasta hyväksytyt kirjastot
 
+# Kehitystyökalut asennetaan vasta, kun ne on todettu hyväksytyiksi.
+- script: python -m pip install -r requirements-dev.txt
+  displayName: Asenna kehitystyökalut
+
+- script: python -m pytest --junitxml=test-results/junit.xml
+  displayName: Testaa tarkastussääntö
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  displayName: Julkaise testitulokset
+  inputs:
+    testResultsFormat: JUnit
+    testResultsFiles: test-results/junit.xml
+    testRunTitle: Tarkastussäännön testit
+    failTaskOnMissingResultsFile: false
+
+# Raportti julkaistaan myös hylätystä ajosta (condition: always()).
 - task: PublishPipelineArtifact@1
   condition: always()
   displayName: Julkaise auditointievidenssi

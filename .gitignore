@@ -1,0 +1,13 @@
+# Tarkastuksen tuottamat raportit (julkaistaan pipeline artifactina)
+artifacts/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+test-results/
+.venv/
+venv/
+
+# Editorit ja käyttöjärjestelmä
+.DS_Store
