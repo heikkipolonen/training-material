@@ -244,6 +244,43 @@ def format_text_report(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _azure_escape(message: str) -> str:
+    """Koodaa merkit, joilla on erityismerkitys Azure DevOpsin logging-komennoissa."""
+    return message.replace("%", "%AZP25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+def _files_containing(report: dict[str, Any], name: str) -> str:
+    files = [Path(path).name for path, deps in report["dependencies"].items() if name in deps]
+    return ", ".join(files)
+
+
+def format_azure_devops_commands(report: dict[str, Any]) -> list[str]:
+    """Muodosta Azure DevOpsin logging-komennot hylätylle tarkastukselle.
+
+    `task.logissue`-rivit näkyvät pipeline-ajon ja PR:n tarkastuksen yhteenvedossa.
+    `task.complete result=Failed` merkitsee taskin epäonnistuneeksi ilman
+    geneeristä "Bash exited with code '1'" -viestiä.
+    """
+    if report["result"] == APPROVED:
+        return []
+
+    messages: list[str] = []
+    if report["error"]:
+        messages.append(report["error"])
+    for name in report["unknown_libraries"]:
+        messages.append(f"Hyväksymätön kirjasto: {name} ({_files_containing(report, name)})")
+    for exception in report["expired_exceptions"]:
+        messages.append(
+            f"Poikkeus vanhentunut {exception['expires']}: {exception['name']} "
+            f"({_files_containing(report, exception['name'])}, {exception['ticket']})"
+        )
+    messages.append(f"Korjausohje: {report['remediation']}")
+
+    commands = [f"##vso[task.logissue type=error]{_azure_escape(m)}" for m in messages]
+    commands.append("##vso[task.complete result=Failed;]Tarkastus hylkäsi riippuvuudet")
+    return commands
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -255,6 +292,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--policy", type=Path, default=DEFAULT_POLICY_FILE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--azure-devops",
+        action="store_true",
+        help="Näytä hylkäyksen syyt Azure DevOpsin PR-näkymässä ja merkitse task "
+        "epäonnistuneeksi logging-komennolla (exit-koodi 0).",
+    )
     args = parser.parse_args(argv)
 
     requirements_paths = args.requirements or DEFAULT_REQUIREMENTS_FILES
@@ -267,6 +310,11 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     print(text, end="")
+
+    if args.azure_devops:
+        for command in format_azure_devops_commands(report):
+            print(command)
+        return 0
     return report["exit_code"]
 
 

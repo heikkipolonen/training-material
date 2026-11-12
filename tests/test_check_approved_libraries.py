@@ -287,3 +287,75 @@ def test_main_checks_project_and_dev_requirements_by_default(
     assert "SUORAT_RIIPPUVUUDET (requirements.txt): arcgis" in text
     assert "SUORAT_RIIPPUVUUDET (requirements-dev.txt): unknown-dev-tool" in text
     assert "TUNTEMATTOMAT_KIRJASTOT: unknown-dev-tool" in text
+
+
+# --- Azure DevOps output (--azure-devops) -------------------------------------
+
+
+def vso_lines(output: str) -> list[str]:
+    return [line for line in output.splitlines() if line.startswith("##vso[")]
+
+
+def run_main_in(tmp_path, policy_file, monkeypatch, requirements: str, *extra):
+    write_requirements(tmp_path, requirements)
+    monkeypatch.chdir(tmp_path)
+    return main(
+        ["--requirements", "requirements.txt", "--policy", str(policy_file), *extra]
+    )
+
+
+def test_azure_devops_rejection_is_shown_as_readable_errors(
+    tmp_path, policy_file, monkeypatch, capsys
+):
+    exit_code = run_main_in(
+        tmp_path, policy_file, monkeypatch,
+        "arcgis\nunknown-demo-package\nexpired-package\n",
+        "--azure-devops",
+    )
+
+    lines = vso_lines(capsys.readouterr().out)
+    assert lines == [
+        "##vso[task.logissue type=error]Hyväksymätön kirjasto: "
+        "unknown-demo-package (requirements.txt)",
+        "##vso[task.logissue type=error]Poikkeus vanhentunut 2026-01-31: "
+        "expired-package (requirements.txt, SEC-100)",
+        "##vso[task.logissue type=error]Korjausohje: Poista riippuvuus tai "
+        "dokumentoi ja hyväksytä poikkeus (policy/approved-libraries.yml) ennen mergeä.",
+        "##vso[task.complete result=Failed;]Tarkastus hylkäsi riippuvuudet",
+    ]
+    # The task is failed via task.complete, so no generic "exited with code 1".
+    assert exit_code == 0
+
+
+def test_azure_devops_check_error_is_shown_as_readable_error(
+    tmp_path, policy_file, monkeypatch, capsys
+):
+    exit_code = run_main_in(
+        tmp_path, policy_file, monkeypatch,
+        "arcgis @ https://evil.example/arcgis.whl\n",
+        "--azure-devops",
+    )
+
+    lines = vso_lines(capsys.readouterr().out)
+    assert lines[0].startswith("##vso[task.logissue type=error]requirements.txt: ")
+    assert "URL- tai VCS-viittaus" in lines[0]
+    assert lines[-1].startswith("##vso[task.complete result=Failed;]")
+    assert exit_code == 0
+
+
+def test_azure_devops_approved_check_prints_no_commands(
+    tmp_path, policy_file, monkeypatch, capsys
+):
+    exit_code = run_main_in(
+        tmp_path, policy_file, monkeypatch, "arcgis\n", "--azure-devops"
+    )
+    assert vso_lines(capsys.readouterr().out) == []
+    assert exit_code == 0
+
+
+def test_without_azure_devops_flag_rejection_uses_exit_code(
+    tmp_path, policy_file, monkeypatch, capsys
+):
+    exit_code = run_main_in(tmp_path, policy_file, monkeypatch, "unknown-demo-package\n")
+    assert vso_lines(capsys.readouterr().out) == []
+    assert exit_code == 1

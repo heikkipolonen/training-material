@@ -28,7 +28,9 @@ steps:
   displayName: Asenna tarkastusskriptin riippuvuus
 
 # Tarkastaa sekä requirements.txt:n että requirements-dev.txt:n.
-- script: python scripts/check_approved_libraries.py
+# --azure-devops: hylkäyksen syyt näkyvät PR:n tarkastusnäkymässä luettavina
+# virheinä, ja task merkitään epäonnistuneeksi logging-komennolla.
+- script: python scripts/check_approved_libraries.py --azure-devops
   displayName: Tarkasta hyväksytyt kirjastot
 
 # Kehitystyökalut asennetaan vasta, kun ne on todettu hyväksytyiksi.

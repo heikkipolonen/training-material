@@ -95,4 +95,13 @@ Poikkeus lisätään rekisterin `exceptions`-listaan. Kentät `name`, `ticket` j
 
 Azure DevOpsissa pakolliseksi asetettu Build validation estää normaalin mergen, mutta raportti julkaistaan silti pipeline artifactina.
 
+Pipeline ajaa tarkastuksen valitsimella `--azure-devops`. Silloin hylkäyksen syyt näkyvät suoraan PR:n tarkastusnäkymässä, esimerkiksi:
+
+```text
+Hyväksymätön kirjasto: unknown-demo-package (requirements.txt)
+Korjausohje: Poista riippuvuus tai dokumentoi ja hyväksytä poikkeus (policy/approved-libraries.yml) ennen mergeä.
+```
+
+Tämä tehdään Azure DevOpsin [logging-komennoilla](https://learn.microsoft.com/azure/devops/pipelines/scripts/logging-commands) (`##vso[task.logissue]` ja `##vso[task.complete result=Failed]`). Paikallisesti skripti käyttää tavallista exit-koodia 1.
+
 Tarkemmat GitHub-, VS Code- ja Azure DevOps -vaiheet ovat tiedostossa [koulutusprosessi.md](koulutusprosessi.md).
