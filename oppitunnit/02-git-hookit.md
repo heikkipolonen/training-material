@@ -85,7 +85,7 @@ python -m pre_commit install --install-hooks
 
 ### Miten hookit on määritelty
 
-Kaikki hookit ovat tiedostossa [`.pre-commit-config.yaml`](.pre-commit-config.yaml), ja ne ovat tämän repositorion omia (`repo: local`). Hookit kirjoitetaan Pythonilla, joten ne toimivat samoin Windowsissa ja macOS:ssä. `language: python` luo hookille oman eristetyn ympäristön, joten hook ei riipu siitä, mikä Python-tulkki VS Codessa on valittuna.
+Kaikki hookit ovat tiedostossa [`.pre-commit-config.yaml`](../.pre-commit-config.yaml), ja ne ovat tämän repositorion omia (`repo: local`). Hookit kirjoitetaan Pythonilla, joten ne toimivat samoin Windowsissa ja macOS:ssä. `language: python` luo hookille oman eristetyn ympäristön, joten hook ei riipu siitä, mikä Python-tulkki VS Codessa on valittuna.
 
 ## C. Harjoitus: hook estää hyväksymättömän kirjaston commitin
 
@@ -207,7 +207,7 @@ Hook siis estää vahingossa tehdyn commitin, mutta ei suojaa konetta, jolla com
 
 ## G. PR-kontrollin täydennys
 
-Hook-asetukset ja hook-skriptit ovat koodia, joka ajautuu **katselmoijan** koneella, kun hän hakee PR-haaran ja tekee siinä commitin. Lisää siksi `main`-haaran Branch policyyn (ks. [koulutusprosessi.md](koulutusprosessi.md), kohta E) pakollinen katselmoija myös polulle:
+Hook-asetukset ja hook-skriptit ovat koodia, joka ajautuu **katselmoijan** koneella, kun hän hakee PR-haaran ja tekee siinä commitin. Lisää siksi `main`-haaran Branch policyyn (ks. [01-hyvaksytyt-kirjastot.md](01-hyvaksytyt-kirjastot.md), kohta D) pakollinen katselmoija myös polulle:
 
 ```text
 /.pre-commit-config.yaml

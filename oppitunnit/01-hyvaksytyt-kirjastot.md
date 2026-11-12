@@ -1,25 +1,10 @@
-# Koulutusprosessi
+# Oppitunti 1: Hyväksytyt kirjastot
 
 ## Tavoite
 
-Kouluttaja jakaa neutraalin koulutuspohjan GitHubissa. Osallistuja kloonaa sen VS Codeen ja julkaisee oman kopionsa Azure Repos Gitiin. Varsinainen pipeline sekä pakollinen PR-kontrolli toteutetaan Azure DevOpsissa.
+Kloonaat koulutuspohjan VS Codeen ja julkaiset oman kopiosi Azure Repos Gitiin. Rakennat Azure DevOpsiin pipelinen ja pakollisen PR-kontrollin, joka hylkää hyväksymättömän Python-kirjaston ennen mergeä.
 
-## A. Kouluttajan GitHub-pohja
-
-Alusta repository projektikansiossa PowerShellillä:
-
-```powershell
-git init
-git add .
-git commit -m "Initial approved library training template"
-git branch -M main
-git remote add origin https://github.com/KOULUTTAJA/arcgis-approved-library-training-template.git
-git push -u origin main
-```
-
-GitHub toimii tässä vain neutraalin koulutuspohjan jakelupaikkana. Repositorioon ei luoda GitHub Actions -workflowta. Älä tallenna pohjaan asiakastietoja, tunnuksia, tokeneita tai todellisia poikkeuspäätöksiä.
-
-## B. Osallistujan paikallinen VS Code -työskentely
+## A. Paikallinen VS Code -työskentely
 
 Kloonaa kouluttajan repository ja avaa se VS Codessa:
 
@@ -45,7 +30,7 @@ TULOS: HYVAKSYTTY
 
 Vaihtoehtoisesti: valitse `.venv` tulkiksi (**Python: Select Interpreter**) ja aja VS Code -task **Koko ketju (kuten pipeline)** (**Terminal → Run Task…**). Pelkän tarkastuksen saa ajettua pikanäppäimellä `Ctrl+Shift+B`.
 
-## C. Oman kopion siirtäminen Azure Repos Gitiin
+## B. Oman kopion siirtäminen Azure Repos Gitiin
 
 Luo Azure DevOpsiin tyhjä Git-repository ilman README-tiedostoa. Kopioi sen HTTPS-osoite ja vaihda paikalliseen repositoryyn uusi ensisijainen etärepositorio:
 
@@ -57,7 +42,7 @@ git push -u origin main
 
 `github-template` voidaan säilyttää kouluttajan päivitysten hakemiseen. Projekti- tai asiakaskohtaisia muutoksia ei työnnetä takaisin kouluttajan GitHub-repositorioon.
 
-## D. Azure Pipelinen luominen
+## C. Azure Pipelinen luominen
 
 1. Avaa Azure DevOpsissa **Pipelines**.
 2. Valitse **New pipeline**.
@@ -69,7 +54,7 @@ git push -u origin main
 8. Avaa artifact **approved-libraries-audit-evidence** ja tarkista raportit (`.txt` ja `.json`).
 9. Avaa ajon **Tests**-välilehti ja tarkista tarkastussäännön testitulokset.
 
-## E. Pakollinen PR-kontrolli
+## D. Pakollinen PR-kontrolli
 
 1. Avaa **Repos → Branches**.
 2. Avaa `main`-haaran **Branch policies**.
@@ -77,7 +62,7 @@ git push -u origin main
 4. Vaadi vähintään yksi ihmiskatselmoija.
 5. Lisää **Automatically included reviewers** -sääntö poluille `/policy/*` ja `/scripts/*` ja aseta katselmoija pakolliseksi. Muuten kehittäjä voisi samassa PR:ssä lisätä riippuvuuden ja hyväksyä sen itse muokkaamalla rekisteriä tai tarkastusskriptiä.
 
-## F. Hyväksytty PR -harjoitus
+## E. Hyväksytty PR -harjoitus
 
 Luo feature-haara:
 
@@ -103,7 +88,7 @@ TULOS: HYVAKSYTTY
 
 Pipeline onnistuu ja auditointiraportti julkaistaan artifactina.
 
-## G. Hylätty PR -harjoitus
+## F. Hylätty PR -harjoitus
 
 Palaa `main`-haaraan, päivitä se ja luo toinen feature-haara:
 

@@ -24,8 +24,8 @@ Jokainen oppitunti on oma haaransa, ja seuraava oppitunti jatkaa edellisen loppu
 
 | Haara | Aihe | Ohje |
 | --- | --- | --- |
-| `lesson/01-approved-libraries` | Hyväksytyt kirjastot, pipeline ja pakollinen PR-kontrolli | [koulutusprosessi.md](koulutusprosessi.md) |
-| `lesson/02-git-hooks` | Git-hookit: sama tarkastus kehittäjän koneelle | [oppitunti-02-git-hookit.md](oppitunti-02-git-hookit.md) |
+| `lesson/01-approved-libraries` | Hyväksytyt kirjastot, pipeline ja pakollinen PR-kontrolli | [oppitunnit/01-hyvaksytyt-kirjastot.md](oppitunnit/01-hyvaksytyt-kirjastot.md) |
+| `lesson/02-git-hooks` | Git-hookit: sama tarkastus kehittäjän koneelle | [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md) |
 
 ## Linjaus
 
@@ -118,7 +118,7 @@ Korjausohje: Poista riippuvuus tai dokumentoi ja hyväksytä poikkeus (policy/ap
 
 Tämä tehdään Azure DevOpsin [logging-komennoilla](https://learn.microsoft.com/azure/devops/pipelines/scripts/logging-commands) (`##vso[task.logissue]` ja `##vso[task.complete result=Failed]`). Paikallisesti skripti käyttää tavallista exit-koodia 1.
 
-Tarkemmat GitHub-, VS Code- ja Azure DevOps -vaiheet ovat tiedostossa [koulutusprosessi.md](koulutusprosessi.md).
+Tarkemmat VS Code- ja Azure DevOps -vaiheet ovat tiedostossa [oppitunnit/01-hyvaksytyt-kirjastot.md](oppitunnit/01-hyvaksytyt-kirjastot.md).
 
 ## Git-hookit
 
@@ -128,4 +128,4 @@ Samat tarkastukset voi ajaa jo kehittäjän koneella git-hookeina:
 python -m pre_commit install
 ```
 
-`git commit` tarkastaa riippuvuudet ja hook-asetukset, ja `git push` ajaa testit. Hookit antavat nopean palautteen, mutta ne eivät korvaa pipelinea: `--no-verify` ohittaa ne. Katso [oppitunti-02-git-hookit.md](oppitunti-02-git-hookit.md).
+`git commit` tarkastaa riippuvuudet ja hook-asetukset, ja `git push` ajaa testit. Hookit antavat nopean palautteen, mutta ne eivät korvaa pipelinea: `--no-verify` ohittaa ne. Katso [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md).
