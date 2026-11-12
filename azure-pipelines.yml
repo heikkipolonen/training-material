@@ -64,6 +64,12 @@ steps:
 - script: 'python -m pip install --require-hashes --only-binary :all: -r requirements-dev.lock.txt'
   displayName: Asenna kehitystyökalut
 
+# SBOM (Software Bill of Materials): lista kaikista paketeista, joista tuote
+# koostuu, standardimuodossa (CycloneDX). Luodaan tuotteen lukitustiedostosta
+# jokaisessa ajossa ja tallennetaan auditointievidenssiin. Mitään ei asenneta.
+- script: mkdir -p artifacts && python -m cyclonedx_py requirements requirements.lock.txt --output-format JSON -o artifacts/sbom.json
+  displayName: Luo SBOM
+
 - script: python -m pytest --junitxml=test-results/junit.xml
   displayName: Testaa tarkastussääntö
 

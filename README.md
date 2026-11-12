@@ -27,7 +27,7 @@ Jokainen oppitunti on oma haaransa, ja seuraava oppitunti jatkaa edellisen loppu
 | `lesson/01-approved-libraries` | Hyväksytyt kirjastot, pipeline ja pakollinen PR-kontrolli | [oppitunnit/01-hyvaksytyt-kirjastot.md](oppitunnit/01-hyvaksytyt-kirjastot.md) |
 | `lesson/02-git-hooks` | Git-hookit: sama tarkastus kehittäjän koneelle | [oppitunnit/02-git-hookit.md](oppitunnit/02-git-hookit.md) |
 | `lesson/03-pinning` | Versioiden lukitus ja lukitustiedostot (vrt. `package-lock.json`) | [oppitunnit/03-versioiden-lukitus.md](oppitunnit/03-versioiden-lukitus.md) |
-| `lesson/04-vulnerability-scanning` | Tunnettujen haavoittuvuuksien tarkastus koko riippuvuuspuulle | [oppitunnit/04-haavoittuvuudet.md](oppitunnit/04-haavoittuvuudet.md) |
+| `lesson/04-vulnerability-scanning` | Tunnettujen haavoittuvuuksien tarkastus koko riippuvuuspuulle ja SBOM | [oppitunnit/04-haavoittuvuudet.md](oppitunnit/04-haavoittuvuudet.md) |
 
 ## Linjaus
 
@@ -101,6 +101,7 @@ artifacts/approved-libraries-report.txt   # ihmisen luettava
 artifacts/approved-libraries-report.json  # koneluettava auditointievidenssi
 artifacts/vulnerability-report.txt        # haavoittuvuustarkastus
 artifacts/vulnerability-report.json
+artifacts/sbom.json                       # tuotteen SBOM (CycloneDX), ks. alla
 ```
 
 ## Hyväksytty tapaus
@@ -167,3 +168,11 @@ Lukitustiedostot luo [uv](https://docs.astral.sh/uv/), mutta asennukset tehdää
 ## Haavoittuvuudet
 
 `python scripts/check_vulnerabilities.py` tarkastaa kaikkien lukitustiedostojen jokaisen paketin tunnettuja haavoittuvuuksia vasten [pip-auditilla](https://pypi.org/project/pip-audit/). Tarkastus ajetaan pre-push-hookina, jokaisessa PR:ssä ja lisäksi joka yö `main`-haarasta, koska uusia haavoittuvuuksia julkaistaan päivittäin. Haavoittuvuuden voi hyväksyä määräaikaisesti tiedostossa `policy/vulnerability-exceptions.yml`. Katso [oppitunnit/04-haavoittuvuudet.md](oppitunnit/04-haavoittuvuudet.md).
+
+## SBOM
+
+Pipeline luo jokaisessa ajossa tuotteen SBOM:n (*Software Bill of Materials*) [CycloneDX](https://cyclonedx.org/)-muodossa ja tallentaa sen auditointievidenssiin. SBOM on standardimuotoinen luettelo kaikista paketeista, joista tuote koostuu. Paikallisesti:
+
+```powershell
+python -m cyclonedx_py requirements requirements.lock.txt --output-format JSON -o artifacts/sbom.json
+```

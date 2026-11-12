@@ -48,6 +48,12 @@ approved:
     approved_on: 2026-11-12
     reason: Lukitustiedostojen haavoittuvuustarkastus (scripts/check_vulnerabilities.py).
       PyPA:n ylläpitämä.
+  - name: cyclonedx-bom
+    versions: ["7.5.0"]
+    approved_by: training-security-team
+    approved_on: 2026-11-12
+    reason: SBOM:n (CycloneDX) luonti lukitustiedostosta. CycloneDX-projektin
+      virallinen työkalu. Uusin yli kolme viikkoa vanha versio (8.0.1 on uudempi).
 
 # Poikkeus on aina määräaikainen ja koskee vain lueteltuja versioita.
 # Tarkastus hylkää riippuvuuden, kun 'expires'-päivä on ohitettu.

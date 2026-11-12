@@ -1,14 +1,16 @@
-# Oppitunti 4: Tunnetut haavoittuvuudet
+# Oppitunti 4: Tunnetut haavoittuvuudet ja SBOM
 
 ## Tavoite
 
 Oppitunnilla 3 lukitustiedostoon tuli 65 pakettia yhdestä suorasta riippuvuudesta. Ihminen hyväksyi niistä yhden. Muut ovat lukittuja ja näkyvissä, mutta kukaan ei ole tarkastanut, onko niissä tunnettuja haavoittuvuuksia.
 
-Tällä oppitunnilla jokainen lukitustiedostojen paketti tarkastetaan automaattisesti julkisia haavoittuvuustietokantoja vasten: ennen pushia, PR:ssä ja joka yö.
+Tällä oppitunnilla jokainen lukitustiedostojen paketti tarkastetaan automaattisesti julkisia haavoittuvuustietokantoja vasten: ennen pushia, PR:ssä ja joka yö. Lisäksi pipeline tallentaa jokaisesta ajosta SBOM:n, eli standardimuotoisen luettelon kaikista paketeista, joista tuote koostuu.
 
 ## Keskeinen viesti
 
 **Ihminen hyväksyy valinnat, työkalu tarkastaa loput.** Lisäksi: eilen turvallinen lukitustiedosto voi olla tänään haavoittuva, vaikka kukaan ei ole muuttanut mitään.
+
+**Haavoittuvuustarkastus tarkastaa ainesosat tänään. SBOM on ainesosaluettelo, joka säilytetään ja luovutetaan.**
 
 ## Lähtötilanne
 
@@ -37,7 +39,7 @@ python -m pre_commit install --install-hooks
 - pip-audit kulki saman hyväksyntäprosessin läpi kuin muutkin työkalut: rekisteriin `pip-audit` versiolla `2.10.1`, `requirements-dev.txt`:hen ja lukitustiedostoon.
 - pip-audit lukee lukitustiedostot **asentamatta mitään**, koska jokainen versio on jo lukittu. Oppitunti 3 teki tämän mahdolliseksi: työkalu ei voi tarkastaa sitä, mitä se ei näe.
 
-> **Pohdittavaa:** `requirements-dev.lock.txt`:ssä oli ennen 17 pakettia, nyt 42. Yksi uusi tietoturvatyökalu toi 25 uutta pakettia. Mitä tästä seuraa?
+> **Pohdittavaa:** Oppitunnin 3 lopussa `requirements-dev.lock.txt`:ssä oli 17 pakettia. pip-audit toi niitä 25 lisää ja SBOM-työkalu (kohta H) vielä 21. Kaksi tietoturvatyökalua lähes nelinkertaisti kehitystyökalujen paketit. Mitä tästä seuraa?
 
 ## B. Aja tarkastus
 
@@ -48,7 +50,7 @@ python scripts/check_vulnerabilities.py
 ```text
 TARKASTUS: Tunnetut haavoittuvuudet
 LUKITUSTIEDOSTOT: requirements.lock.txt, requirements-dev.lock.txt, requirements-bootstrap.lock.txt
-TARKASTETUT_PAKETIT: 101
+TARKASTETUT_PAKETIT: 119
 TULOS: HYVAKSYTTY
 HAAVOITTUVUUDET: ei ole
 ```
@@ -161,6 +163,53 @@ schedules:
 
 Ajastetut ajot näkyvät Azure DevOpsissa pipelinen ajojen listassa. Epäonnistunut yöajo tarkoittaa, että `main`-haarassa on paketti, jolle on julkaistu haavoittuvuus.
 
+## H. SBOM: ainesosaluettelo, joka säilytetään
+
+Haavoittuvuustarkastus vastaa kysymykseen *"onko jokin näistä haavoittuva juuri nyt?"*. Sen tulos on voimassa vain tarkastushetkellä.
+
+SBOM (*Software Bill of Materials*) vastaa kysymykseen *"mitä tarkalleen on tässä versiossa?"*. Se tallennetaan jokaisesta pipeline-ajosta, ja siitä on hyötyä vielä kuukausien päästä:
+
+- **Kysymykset vanhoista versioista.** Kun julkaistaan iso uusi haavoittuvuus, kiireellisin kysymys on, missä jo toimitetuissa versioissa haavoittuva paketti on. Jokaisen version SBOM:sta sen näkee minuuteissa, myös asiakkailla käytössä olevista vanhoista versioista.
+- **Jakaminen.** Asiakkaalla tai auditoijalla ei ole repositoriota, lukitustiedoston muotoa eikä skriptejä. CycloneDX on standardimuoto, jota heidän työkalunsa osaavat lukea ja seurata.
+- **Vaatimukset.** Esimerkiksi EU:n kyberkestävyyssäädös (Cyber Resilience Act) edellyttää valmistajilta SBOM:ia.
+
+Lukitustiedostossa on sama tieto, mutta se on pipin oma muoto repositoriossa. SBOM on sama tieto standardimuodossa, tallennettuna jokaisen ajon mukana.
+
+SBOM luodaan työkalulla [cyclonedx-bom](https://pypi.org/project/cyclonedx-bom/), joka on CycloneDX-projektin virallinen työkalu. Se kulki saman hyväksyntäprosessin läpi kuin muutkin työkalut. SBOM tehdään vain tuotteen lukitustiedostosta (`requirements.lock.txt`), koska kehitystyökalut eivät ole osa toimitettavaa tuotetta.
+
+```powershell
+python -m cyclonedx_py requirements requirements.lock.txt --output-format JSON -o artifacts/sbom.json
+```
+
+VS Codessa sama onnistuu taskilla **Luo SBOM**. Pipeline luo SBOM:n jokaisessa ajossa ja tallentaa sen auditointievidenssiin (`sbom.json`).
+
+### Harjoitus
+
+Avaa `artifacts/sbom.json` VS Codessa.
+
+1. Montako pakettia (`components`) SBOM:ssa on? Vertaa lukitustiedoston rivimäärään.
+2. Asiakas kysyy: *"Käytättekö `requests`-pakettia, ja missä versiossa?"* Etsi vastaus SBOM:sta.
+3. Etsi `arcgis`. Mitä tarkoittaa kenttä `purl`? Missä paketin hash on?
+
+```json
+{
+  "name": "arcgis",
+  "version": "2.4.4",
+  "purl": "pkg:pypi/arcgis@2.4.4",
+  "externalReferences": [
+    {
+      "type": "distribution",
+      "url": "https://pypi.org/simple/arcgis/",
+      "hashes": [{ "alg": "SHA-256", "content": "e88ba1b4…" }]
+    }
+  ]
+}
+```
+
+`purl` (*package URL*) on paketin yksilöivä tunniste, joka toimii kaikissa työkaluissa: `pkg:pypi/arcgis@2.4.4` tarkoittaa PyPI:n pakettia `arcgis` versiossa 2.4.4.
+
+4. Mistä löytäisit kolme kuukautta sitten toimitetun version SBOM:n? (Vihje: pipeline-ajot ja niiden artifactit.)
+
 ## Mitä tarkastus ei ratkaise
 
 - **Vain tunnetut haavoittuvuudet.** Jos paketin uusi versio on kaapattu ja siihen on lisätty haitallista koodia, siitä ei ole vielä ilmoitusta tietokannassa. Tähän auttavat oppitunnin 1 hyväksyntä ja oppitunnin 3 odotusaika uusien versioiden kanssa.
@@ -172,6 +221,7 @@ Ajastetut ajot näkyvät Azure DevOpsissa pipelinen ajojen listassa. Epäonnistu
 1. Miksi haavoittuvuustarkastus ajetaan pushissa eikä jokaisessa commitissa?
 2. Yöajo epäonnistuu maanantaiaamuna. Kuka korjaa sen, ja mistä hän saa tiedon?
 3. Milloin poikkeus on parempi ratkaisu kuin päivitys?
+4. Miksi SBOM tehdään vain tuotteen lukitustiedostosta eikä kehitystyökaluista? Onko tilanteita, joissa kehitystyökalujenkin SBOM olisi hyödyllinen?
 
 ## Yhteenveto
 
@@ -182,4 +232,4 @@ Ajastetut ajot näkyvät Azure DevOpsissa pipelinen ajojen listassa. Epäonnistu
 | Hook | pre-push-hook: sama tulos kuin PR:ssä, mutta ennen pushia |
 | Pipeline | Jokaisessa PR:ssä ja joka yö `main`-haarasta |
 | PR-kontrolli | Poikkeukset tiedostossa `policy/vulnerability-exceptions.yml`, jolla on pakollinen katselmoija |
-| Auditointievidenssi | `vulnerability-report.txt` ja `.json` pipeline-artifactissa |
+| Auditointievidenssi | `vulnerability-report.txt` ja `.json` sekä tuotteen SBOM (`sbom.json`) pipeline-artifactissa |

@@ -39,6 +39,10 @@ Lukitustiedostoissa ei saa olla paketteja, joissa on tunnettu haavoittuvuus.
 - Ensisijainen korjaus on päivittää paketti korjattuun versioon. Transitiivinen riippuvuus päivitetään komennolla `python scripts/lock_files.py update --upgrade-package <paketti>`.
 - Jos korjattua versiota ei voi ottaa käyttöön, haavoittuvuuden voi hyväksyä määräaikaisesti tiedostossa `policy/vulnerability-exceptions.yml` (tunniste, tiketti ja päättymispäivä).
 
+## SBOM
+
+Jokaisesta pipeline-ajosta tallennetaan tuotteen SBOM (CycloneDX JSON, `sbom.json`) auditointievidenssiin. SBOM luodaan tuotteen lukitustiedostosta (`requirements.lock.txt`). Kehitystyökalut eivät ole osa toimitettavaa tuotetta, joten ne eivät ole SBOM:ssa.
+
 ## Poikkeukset
 
 Poikkeus kirjataan rekisterin `exceptions`-listaan. Jokaisella poikkeuksella on pakollinen tikettiviite (`ticket`), päättymispäivä (`expires`) ja versiot (`versions`), joita se koskee. Poikkeus on voimassa päättymispäivään asti.
