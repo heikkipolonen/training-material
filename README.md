@@ -104,4 +104,4 @@ Korjausohje: Poista riippuvuus tai dokumentoi ja hyväksytä poikkeus (policy/ap
 
 Tämä tehdään Azure DevOpsin [logging-komennoilla](https://learn.microsoft.com/azure/devops/pipelines/scripts/logging-commands) (`##vso[task.logissue]` ja `##vso[task.complete result=Failed]`). Paikallisesti skripti käyttää tavallista exit-koodia 1.
 
-Tarkemmat GitHub-, VS Code- ja Azure DevOps -vaiheet ovat tiedostossa [koulutusprosessi.md](koulutusprosessi.md).
+Tarkemmat VS Code- ja Azure DevOps -vaiheet ovat tiedostossa [oppitunnit/01-hyvaksytyt-kirjastot.md](oppitunnit/01-hyvaksytyt-kirjastot.md).

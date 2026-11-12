@@ -5,7 +5,7 @@ trigger:
       - main
 
 # HUOM: Azure Repos Git ei käytä YAML:n `pr:`-triggeriä. PR-ajot käynnistää
-# main-haaran Branch policy → Build validation (ks. koulutusprosessi.md, kohta E).
+# main-haaran Branch policy → Build validation (ks. oppitunnit/01-hyvaksytyt-kirjastot.md, kohta D).
 # Siksi PR-triggeri on tässä tarkoituksella pois päältä, ettei se johda harhaan.
 pr: none
 
