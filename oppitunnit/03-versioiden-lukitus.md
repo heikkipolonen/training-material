@@ -64,6 +64,8 @@ python -m pre_commit install --install-hooks
 
 Molempien tarkastusten pitää tulostaa `TULOS: HYVAKSYTTY`.
 
+Viimeinen komento asentaa git-hookit uudelleen niin, että ne käyttävät uuden `.venv`-ympäristön Pythonia. Jos asensit hookit oppitunnilla 2 vanhemmalla Pythonilla, ensimmäinen push epäonnistuu muuten virheeseen `No matching distribution found for pytest==9.1.1`. Jos niin käy, aja `python -m pre_commit clean` ja sen jälkeen `python -m pre_commit install --install-hooks` uudelleen.
+
 VS Codessa sama onnistuu taskilla **Koko ketju (kuten pipeline)**.
 
 ## C. Harjoitus: mitä `arcgis` toi mukanaan?
